@@ -111,15 +111,11 @@
           }
         },
         "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
+          "builder": "@politie/angular-testcafe-builder:testcafe",
           "options": {
-            "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "testcafe-harness:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "testcafe-harness:serve:production"
-            }
+            "browsers": ["chrome"],
+            "src": "e2e/src/*.e2e-spec.ts",
+            "host": "localhost"
           }
         }
       }

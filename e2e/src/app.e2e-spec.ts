@@ -1,23 +1,18 @@
-import { AppPage } from './app.po';
-import { browser, logging } from 'protractor';
+import { AngularSelector, waitForAngular } from 'testcafe-angular-selectors';
 
-describe('workspace-project App', () => {
-  let page: AppPage;
-
-  beforeEach(() => {
-    page = new AppPage();
+fixture `Book Collection`
+  .page('https://miherlosev.github.io/e2e_angular/')
+  .beforeEach(async t => {
+    await waitForAngular();
   });
 
-  it('should display welcome message', () => {
-    page.navigateTo();
-    expect(page.getTitleText()).toEqual('testcafe-harness app is running!');
-  });
+test('Login', async t => {
+  const loginForm = AngularSelector('bc-login-form');
 
-  afterEach(async () => {
-    // Assert that there are no errors emitted from the browser
-    const logs = await browser.manage().logs().get(logging.Type.BROWSER);
-    expect(logs).not.toContain(jasmine.objectContaining({
-      level: logging.Level.SEVERE,
-    } as logging.Entry));
-  });
+  await t
+    .typeText(loginForm.find('#md-input-1'), 'test')
+    .typeText(loginForm.find('#md-input-3'), 'test')
+    .click(loginForm.find('.mat-button'));
+
+    await loginForm
 });
