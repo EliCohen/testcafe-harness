@@ -7,18 +7,19 @@ import {
   element as protractorElement,
   ElementArrayFinder,
 } from 'protractor';
-import { ProtractorElement } from './protractor-element';
-import { Selector } from 'testcafe';
+import { TestCafeElement } from './testcafe-element';
+import { Selector, t } from 'testcafe';
 
 /** Options to configure the environment. */
 export interface TestCafeHarnessEnvironmentOptions {
   /** The query function used to find DOM elements. */
   queryFn: (selector: string, root: Selector) => ElementArrayFinder;
+  testController?: TestController;
 }
 
 /** The default environment options. */
 const defaultEnvironmentOptions: TestCafeHarnessEnvironmentOptions = {
-  queryFn: (selector: string, root: Selector) => root.find(selector),
+  queryFn: (selector: string, root: Selector) => root.find(selector)
 };
 
 /** A `HarnessEnvironment` implementation for TestCafe. */
@@ -54,7 +55,7 @@ export class TestCafeHarnessEnvironment extends HarnessEnvironment<Selector> {
   }
 
   protected createTestElement(element: Selector): TestElement {
-    return new ProtractorElement(element);
+    return new TestCafeElement(this._options.testController, element);
   }
 
   protected createEnvironment(element: Selector): HarnessEnvironment<Selector> {

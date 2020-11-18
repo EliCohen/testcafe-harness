@@ -1,0 +1,9 @@
+{
+  "browsers": ["chrome"],
+	"src": ["./e2e/src/**/*.e2e-spec.ts"],
+  "reporter": [
+    {
+      "name": "spec"
+    }
+  ]
+}

@@ -5,71 +5,74 @@ import {
   TestElement,
   TestKey,
   TextOptions,
-  EventData,
 } from '@angular/cdk/testing';
-import { browser, Button, by, ElementFinder, Key } from 'protractor';
-import { Selector, t } from 'testcafe';
+import { ClientFunction, Selector, t } from 'testcafe';
 
 const TestController = typeof t;
 
 /** Maps the `TestKey` constants to TestCafe's `Key` constants. */
 const keyMap = {
-  [TestKey.BACKSPACE]: Key.BACK_SPACE,
-  [TestKey.TAB]: Key.TAB,
-  [TestKey.ENTER]: Key.ENTER,
-  [TestKey.SHIFT]: Key.SHIFT,
-  [TestKey.CONTROL]: Key.CONTROL,
-  [TestKey.ALT]: Key.ALT,
-  [TestKey.ESCAPE]: Key.ESCAPE,
-  [TestKey.PAGE_UP]: Key.PAGE_UP,
-  [TestKey.PAGE_DOWN]: Key.PAGE_DOWN,
-  [TestKey.END]: Key.END,
-  [TestKey.HOME]: Key.HOME,
-  [TestKey.LEFT_ARROW]: Key.ARROW_LEFT,
-  [TestKey.UP_ARROW]: Key.ARROW_UP,
-  [TestKey.RIGHT_ARROW]: Key.ARROW_RIGHT,
-  [TestKey.DOWN_ARROW]: Key.ARROW_DOWN,
-  [TestKey.INSERT]: Key.INSERT,
-  [TestKey.DELETE]: Key.DELETE,
-  [TestKey.F1]: Key.F1,
-  [TestKey.F2]: Key.F2,
-  [TestKey.F3]: Key.F3,
-  [TestKey.F4]: Key.F4,
-  [TestKey.F5]: Key.F5,
-  [TestKey.F6]: Key.F6,
-  [TestKey.F7]: Key.F7,
-  [TestKey.F8]: Key.F8,
-  [TestKey.F9]: Key.F9,
-  [TestKey.F10]: Key.F10,
-  [TestKey.F11]: Key.F11,
-  [TestKey.F12]: Key.F12,
-  [TestKey.META]: Key.META,
+  [TestKey.BACKSPACE]: 'backspace',
+  [TestKey.TAB]: 'tab',
+  [TestKey.ENTER]: 'enter',
+  [TestKey.SHIFT]: 'shift',
+  [TestKey.CONTROL]: 'ctrl',
+  [TestKey.ALT]: 'alt',
+  [TestKey.ESCAPE]: 'esc',
+  [TestKey.PAGE_UP]: 'pageup',
+  [TestKey.PAGE_DOWN]: 'pagedown',
+  [TestKey.END]: 'end',
+  [TestKey.HOME]: 'home',
+  [TestKey.LEFT_ARROW]: 'left',
+  [TestKey.UP_ARROW]: 'up',
+  [TestKey.RIGHT_ARROW]: 'right',
+  [TestKey.DOWN_ARROW]: 'down',
+  [TestKey.INSERT]: 'insert',
+  [TestKey.DELETE]: 'delete',
+  [TestKey.F1]: 'f1',
+  [TestKey.F2]: 'f2',
+  [TestKey.F3]: 'f3',
+  [TestKey.F4]: 'f4',
+  [TestKey.F5]: 'f5',
+  [TestKey.F6]: 'f6',
+  [TestKey.F7]: 'f7',
+  [TestKey.F8]: 'f8',
+  [TestKey.F9]: 'f9',
+  [TestKey.F10]: 'f10',
+  [TestKey.F11]: 'f11',
+  [TestKey.F12]: 'f12',
+  [TestKey.META]: 'meta',
 };
 
 /** Converts a `ModifierKeys` object to a list of TestCafe `Key`s. */
 function toTestCafeModifierKeys(modifiers: ModifierKeys): string[] {
   const result: string[] = [];
   if (modifiers.control) {
-    result.push(Key.CONTROL);
+    result.push('ctrl');
   }
   if (modifiers.alt) {
-    result.push(Key.ALT);
+    result.push('alt');
   }
   if (modifiers.shift) {
-    result.push(Key.SHIFT);
+    result.push('shift');
   }
   if (modifiers.meta) {
-    result.push(Key.META);
+    result.push('meta');
   }
   return result;
 }
 
 /** A `TestElement` implementation for TestCafe. */
 export class TestCafeElement implements TestElement {
-  constructor(readonly tc: TestController, readonly element: Selector) {}
+  constructor(
+    private readonly tc: TestController,
+    private readonly element: Selector
+  ) {}
 
-  async blur(): Promise<void> { // TODO
-    return browser.executeScript('arguments[0].blur()', this.element);
+  async blur(): Promise<void> {
+    // TODO
+    this.tc.pressKey('tab');
+    // return browser.executeScript('arguments[0].blur()', this.element);
   }
 
   async clear(): Promise<void> {
@@ -77,33 +80,38 @@ export class TestCafeElement implements TestElement {
   }
 
   async click(...args: [] | ['center'] | [number, number]): Promise<void> {
-    await this._dispatchClickEventSequence(args);
+    return this.tc.click(this.element);
+    // await this._dispatchClickEventSequence(args);
   }
 
   async rightClick(...args: [] | ['center'] | [number, number]): Promise<void> {
-    await this._dispatchClickEventSequence(args, Button.RIGHT);
+    return this.tc.rightClick(this.element);
+    // await this._dispatchClickEventSequence(args, Button.RIGHT);
   }
 
   async focus(): Promise<void> {
-    return browser.executeScript('arguments[0].focus()', this.element);
+    const focus = ClientFunction(async () => {
+      document.getElementById(await this.element.id).focus();
+    });
+
+    await focus();
+    // return browser.executeScript('arguments[0].focus()', this.element);
   }
 
   async getCssValue(property: string): Promise<string> {
-    return this.element.getCssValue(property);
+    return this.element.getStyleProperty(property);
   }
 
   async hover(): Promise<void> {
-    return browser
-      .actions()
-      .mouseMove(await this.element.getWebElement())
-      .perform();
+    return await this.tc.hover(this.element);
   }
 
   async mouseAway(): Promise<void> {
-    return browser
-      .actions()
-      .mouseMove(await this.element.getWebElement(), { x: -1, y: -1 })
-      .perform();
+    return null;
+    // return browser
+    //   .actions()
+    //   // .mouseMove(await this.element.getWebElement(), { x: -1, y: -1 })
+    // .perform();
   }
 
   async sendKeys(...keys: (string | TestKey)[]): Promise<void>;
@@ -133,7 +141,9 @@ export class TestCafeElement implements TestElement {
         modifierKeys.length > 0 ? Key.chord(...modifierKeys, k) : k
       );
 
-    return this.element.sendKeys(...keys);
+    return keys.forEach(async (k) => {
+      await this.tc.typeText(this.element, k);
+    });
   }
 
   async text(options?: TextOptions): Promise<string> {
